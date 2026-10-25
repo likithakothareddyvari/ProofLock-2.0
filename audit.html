@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Audit Trail · ProofLock 2.0{% endblock %}
+{% block content %}
+<p class="eyebrow">PROOFLOCK 2.0 / AUDIT</p><h1>Audit trail</h1>
+<section class="status-card"><div class="status-dot {{ 'good' if chain_ok else 'bad' }}"></div><div><strong>Hash-chain: {{ 'VALID' if chain_ok else 'INVALID' }}</strong><p>{{ chain_message }}</p></div></section>
+<section class="panel"><div class="table-wrap"><table><thead><tr><th>ID</th><th>Evidence</th><th>Event</th><th>Actor</th><th>Timestamp</th><th>Previous hash</th><th>Record hash</th></tr></thead><tbody>
+{% for e in audit %}<tr><td>{{ e.id }}</td><td>#{{ e.evidence_id or '—' }}</td><td>{{ e.event }}</td><td>{{ e.actor }}</td><td>{{ e.timestamp }}</td><td><code>{{ e.previous_hash[:16] }}…</code></td><td><code>{{ e.record_hash[:16] }}…</code></td></tr>{% endfor %}
+</tbody></table></div></section>
+<p class="hint">Each audit record contains the previous record's hash. This local demonstration can reveal accidental or unauthorised record changes, but a local administrator could still alter the database and recompute hashes. A distributed blockchain would require a separate integration.</p>
+{% endblock %}

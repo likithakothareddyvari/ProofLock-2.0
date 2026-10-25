@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · ProofLock 2.0{% endblock %}
+{% block content %}
+<section class="hero">
+  <div><p class="eyebrow">YUKTHI 2026 · BLOCKCHAIN & CYBERSECURITY</p><h1>Protect digital evidence.<br><span>Prove its integrity.</span></h1>
+  <p class="sub">Register evidence, verify file integrity, and maintain a tamper-evident event history.</p></div>
+  <div class="hero-icon">⌁</div>
+</section>
+<section class="status-card">
+  <div class="status-dot {{ 'good' if chain_ok else 'bad' }}"></div>
+  <div><strong>Audit hash-chain: {{ 'VALID' if chain_ok else 'INVALID' }}</strong><p>{{ chain_message }}</p></div>
+</section>
+<div class="section-heading"><div><p class="eyebrow">01 / REGISTER</p><h2>Upload evidence</h2></div></div>
+<section class="panel">
+<form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" class="upload-form">
+  <label>Evidence file <input type="file" name="file" required accept=".pdf,.png,.jpg,.jpeg,.txt,.docx,.mp4"></label>
+  <div class="two-col"><label>Actor / user <input name="actor" placeholder="e.g. Investigator A" value="Demo User" maxlength="80"></label>
+  <label>Description (optional) <input name="description" placeholder="Short non-sensitive description" maxlength="300"></label></div>
+  <button type="submit">Register evidence <span>→</span></button>
+  <p class="hint">Maximum 20 MB. Supported: PDF, PNG, JPG, TXT, DOCX, MP4. Use sample files only.</p>
+</form>
+</section>
+<div class="section-heading"><div><p class="eyebrow">02 / VERIFY</p><h2>Evidence register</h2></div><span class="count">{{ evidence|length }} item(s)</span></div>
+{% if evidence %}
+<div class="evidence-list">
+{% for item in evidence %}
+<article class="evidence-card">
+  <div class="file-icon">▤</div><div class="evidence-main">
+    <h3>{{ item.original_name }}</h3><p class="muted">Evidence #{{ item.id }} · {{ item.created_at }}</p>
+    <div class="hash"><span>SHA-256</span><code>{{ item.sha256 }}</code></div>
+    {% if item.description %}<p>{{ item.description }}</p>{% endif %}
+    <div class="actions">
+      <form action="{{ url_for('verify', evidence_id=item.id) }}" method="post" class="inline-form"><input name="actor" value="Demo User" aria-label="Actor" maxlength="80"><button class="secondary" type="submit">Verify file</button></form>
+      <a class="button-link" href="{{ url_for('report', evidence_id=item.id) }}">Download report</a>
+    </div>
+    <details><summary>Record custody event</summary>
+      <form action="{{ url_for('custody', evidence_id=item.id) }}" method="post" class="custody-form">
+        <input name="actor" value="Demo User" placeholder="Actor" required maxlength="80">
+        <input name="recipient" placeholder="Recipient / next custodian" maxlength="80">
+        <select name="action"><option>TRANSFER</option><option>ACCESS</option><option>RECEIVED</option><option>REVIEWED</option></select>
+        <input name="note" placeholder="Short note (optional)" maxlength="250">
+        <button class="secondary" type="submit">Record event</button>
+      </form>
+    </details>
+  </div>
+</article>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty"><div>▤</div><h3>No evidence registered yet</h3><p>Upload a sample file above to start the demo.</p></div>
+{% endif %}
+<div class="section-heading"><div><p class="eyebrow">03 / RECENT ACTIVITY</p><h2>Audit trail preview</h2></div><a href="{{ url_for('audit_page') }}">View all →</a></div>
+<section class="panel">
+{% if audit %}<div class="table-wrap"><table><thead><tr><th>Event</th><th>Evidence</th><th>Actor</th><th>Timestamp</th><th>Record hash</th></tr></thead><tbody>
+{% for e in audit %}<tr><td><span class="pill">{{ e.event }}</span></td><td>#{{ e.evidence_id or '—' }}</td><td>{{ e.actor }}</td><td>{{ e.timestamp }}</td><td><code>{{ e.record_hash[:16] }}…</code></td></tr>{% endfor %}
+</tbody></table></div>{% else %}<p class="muted">No audit events yet.</p>{% endif %}
+</section>
+<div class="notice"><strong>Prototype scope:</strong> This version uses a local hash-linked audit log to demonstrate tamper-evident records. It is not connected to a distributed blockchain network.</div>
+{% endblock %}
